@@ -19,14 +19,21 @@ import com.example.footpath.ui.theme.FootPathTheme
 class AuthActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. Проверяем наличие токена
+        val token = FootPathApp.tokenManager.getToken()
+        if (token != null) {
+            // Если токен есть, сразу переходим на главный экран
+            navigateToMainApp()
+            // Важно: не вызываем setContent, чтобы экран входа не мелькнул
+            return
+        }
+
+        // 2. Если токена нет, показываем UI для входа
         setContent {
-            FootPathTheme() {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    AuthNavHost()
-                }
+            FootPathTheme {
+                // Surface убран, так как он не обязателен на этом уровне
+                AuthNavHost()
             }
         }
     }
