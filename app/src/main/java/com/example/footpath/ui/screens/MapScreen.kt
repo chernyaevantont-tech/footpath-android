@@ -1,9 +1,124 @@
 package com.example.footpath.ui.screens
 
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import android.Manifest
+import android.annotation.SuppressLint
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.footpath.map.MapViewModel
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MapScreen() {
-    Text(text = "Map Screen")
+fun MapScreen(
+    mapViewModel: MapViewModel = viewModel()
+) {
+    val uiState by mapViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    val sheetState = rememberModalBottomSheetState()
+    val showBottomSheet = uiState.selectedPlace != null
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                mapViewModel.centerOnUserLocation()
+            } else {
+
+            }
+        }
+    )
+
+    val mapView = remember { MapView(context) }
+
+    val locationOverlay = remember {
+        MyLocationNewOverlay(GpsMyLocationProvider(context), mapView)
+    }
+
+    Scaffold (
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                },
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Icon(Icons.Default.MyLocation, contentDescription = "My Location")
+            }
+        }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = {
+                    mapView.apply {
+                        setTileSource(TileSourceFactory.MAPNIK)
+                        setMultiTouchControls(true)
+                        controller.setZoom(15.0)
+                        controller.setCenter(GeoPoint(55.7558, 37.6173)) // Москва
+
+                        // Включаем оверлей местоположения
+                        locationOverlay.enableMyLocation()
+                        overlays.add(locationOverlay)
+                    }
+                },
+                update = {
+                    it.overlays.removeAll { overlay -> overlay is Marker }
+                    uiState.places.forEach { place ->
+                        val marker = Marker(it).apply {
+                            position = GeoPoint(place.latitude, place.longitude)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            title = place.name
+                        }
+                        it.overlays.add(marker)
+                    }
+                    it.invalidate()
+                }
+            )
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.userLocation) {
+        uiState.userLocation?.let {
+            mapView.controller.animateTo(it)
+        }
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet (
+            onDismissRequest = { /* TODO: handle dismiss */ },
+            sheetState = sheetState
+        ) { }
+    }
 }

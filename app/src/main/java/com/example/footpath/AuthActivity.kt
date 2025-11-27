@@ -14,25 +14,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.footpath.ui.navigation.Screen
 import com.example.footpath.ui.screens.LoginScreen
+import com.example.footpath.ui.screens.RegisterScreen
 import com.example.footpath.ui.theme.FootPathTheme
 
 class AuthActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Проверяем наличие токена
-        val token = FootPathApp.tokenManager.getToken()
-        if (token != null) {
-            // Если токен есть, сразу переходим на главный экран
+        val isAddNewAccountMode = intent.getBooleanExtra("ADD_NEW_ACCOUNT_MODE", false)
+
+        if (!isAddNewAccountMode && FootPathApp.accountManager.getActiveAccount() != null) {
             navigateToMainApp()
-            // Важно: не вызываем setContent, чтобы экран входа не мелькнул
             return
         }
 
-        // 2. Если токена нет, показываем UI для входа
         setContent {
             FootPathTheme {
-                // Surface убран, так как он не обязателен на этом уровне
                 AuthNavHost()
             }
         }
@@ -41,28 +38,36 @@ class AuthActivity : ComponentActivity() {
     @Composable
     fun AuthNavHost() {
         val navController = rememberNavController()
+
         NavHost(navController = navController, startDestination = Screen.Login.route) {
             composable(Screen.Login.route) {
-                LoginScreen (
-                    onLoginSuccess = {
-                        // При успешном входе запускаем MainActivity
-                        navigateToMainApp()
-                    }
+                LoginScreen(
+                    onLoginSuccess = { navigateToMainApp() },
+                    // Используем новый централизованный маршрут
+                    onNavigateToRegister = { navController.navigate(Screen.Register.route) }
                 )
             }
-            // Здесь в будущем можно будет добавить экран регистрации
-            // composable("register_screen") { ... }
+
+            // Используем новый централизованный маршрут
+            composable(Screen.Register.route) {
+                RegisterScreen (
+                    onRegistrationSuccess = { navigateToMainApp() },
+                    onBackToLogin = { navController.popBackStack() }
+                )
+            }
+
         }
     }
 
+
+
     private fun navigateToMainApp() {
-        // Создаем Intent для запуска MainActivity
         val intent = Intent(this, MainActivity::class.java).apply {
-            // Флаги, чтобы пользователь не мог вернуться на экран входа кнопкой "назад"
+            putExtra("LOGIN_SUCCESS", true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         startActivity(intent)
-        // Завершаем AuthActivity
+
         finish()
     }
 }

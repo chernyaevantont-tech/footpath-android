@@ -23,9 +23,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.footpath.profile.ProfileViewModel
 import com.example.footpath.ui.navigation.Screen
 
-// Описываем элементы нижней навигации
 sealed class BottomNavItem(val screen: Screen, val icon: ImageVector, val title: String) {
     object Map : BottomNavItem(Screen.Map, Icons.Default.Map, "Карта")
     object Friends : BottomNavItem(Screen.Friends, Icons.Default.People, "Друзья")

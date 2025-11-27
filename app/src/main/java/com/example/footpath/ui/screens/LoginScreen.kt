@@ -43,12 +43,11 @@ import com.example.footpath.ui.theme.FootPathTheme
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit,
     loginViewModel: LoginViewModel = viewModel()
 ) {
     val uiState by loginViewModel.uiState.collectAsState()
 
-    // 1. Используем LaunchedEffect для навигации
-    // Этот блок выполнится, когда uiState.loginSuccess станет true
     LaunchedEffect(key1 = uiState.loginSuccess) {
         if (uiState.loginSuccess) {
             onLoginSuccess()
@@ -67,7 +66,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Welcome to FootPath",
+                text = "FootPath",
                 style = MaterialTheme.typography.headlineMedium
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -79,7 +78,6 @@ fun LoginScreen(
                 label = { Text("Email") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
-                // 2. Блокируем поля во время загрузки
                 enabled = !uiState.isLoading
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -99,12 +97,10 @@ fun LoginScreen(
                         Icon(imageVector = image, contentDescription = description)
                     }
                 },
-                // Блокируем поля во время загрузки
                 enabled = !uiState.isLoading
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Отображаем ошибку, если она есть
             if (uiState.errorMessage != null) {
                 Text(
                     text = uiState.errorMessage!!,
@@ -116,33 +112,20 @@ fun LoginScreen(
             Button(
                 onClick = { loginViewModel.onLoginClicked() },
                 modifier = Modifier.fillMaxWidth(),
-                // Кнопка заблокирована во время загрузки или если поля пустые
                 enabled = !uiState.isLoading && uiState.email.isNotBlank() && uiState.password.isNotBlank()
             ) {
                 Text("Login")
             }
             Spacer(modifier = Modifier.height(24.dp))
 
-            TextButton(onClick = { /* TODO */ }, enabled = !uiState.isLoading) {
-                Text("Don't have an account? Register")
-            }
-            TextButton(onClick = { /* TODO */ }, enabled = !uiState.isLoading) {
-                Text("Forgot Password?")
+            TextButton(onClick = onNavigateToRegister , enabled = !uiState.isLoading) {
+                Text("Нет аккаунта? Зарегистрируйтесь")
             }
         }
 
-        // 4. Показываем индикатор загрузки поверх всего
         if (uiState.isLoading) {
             CircularProgressIndicator()
         }
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    FootPathTheme {
-        LoginScreen(onLoginSuccess = {})
-    }
-}

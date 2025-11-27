@@ -12,14 +12,13 @@ data class LoginUiState(
     val email: String = "",
     val password: String = "",
     val isPasswordVisible: Boolean = false,
-    val isLoading: Boolean = false,       // Для индикатора загрузки
-    val loginSuccess: Boolean = false,    // Флаг успешного входа
-    val errorMessage: String? = null      // Для сообщения об ошибке
+    val isLoading: Boolean = false,
+    val loginSuccess: Boolean = false,
+    val errorMessage: String? = null
 )
 
 class LoginViewModel : ViewModel() {
 
-    // 1. Создаем экземпляр репозитория
     private val authRepository = AuthRepository()
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -27,14 +26,12 @@ class LoginViewModel : ViewModel() {
 
     fun onEmailChange(newEmail: String) {
         _uiState.update { currentState ->
-            // Сбрасываем ошибку, как только пользователь начинает печатать
             currentState.copy(email = newEmail, errorMessage = null)
         }
     }
 
     fun onPasswordChange(newPassword: String) {
         _uiState.update { currentState ->
-            // Сбрасываем ошибку, как только пользователь начинает печатать
             currentState.copy(password = newPassword, errorMessage = null)
         }
     }
@@ -45,26 +42,29 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    // 2. Обновляем логику нажатия на кнопку
     fun onLoginClicked() {
+
         if (_uiState.value.isLoading) return
 
         val email = _uiState.value.email
         val password = _uiState.value.password
 
+        if (email.isBlank() || password.isBlank()) {
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            // Теперь получаем Boolean
-            val isSuccess = authRepository.login(email, password)
+            val loggedInAccount = authRepository.login(email, password)
 
-            if (isSuccess) {
-                // Успех!
+            if (loggedInAccount != null) {
+
                 _uiState.update {
                     it.copy(isLoading = false, loginSuccess = true)
                 }
             } else {
-                // Ошибка
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,

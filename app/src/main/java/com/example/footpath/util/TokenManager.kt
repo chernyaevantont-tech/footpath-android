@@ -6,15 +6,13 @@ import androidx.security.crypto.MasterKey
 
 class TokenManager(context: Context) {
 
-    // Создаем или получаем главный ключ для шифрования
     private val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
-    // Инициализируем EncryptedSharedPreferences
     private val sharedPreferences = EncryptedSharedPreferences.create(
         context,
-        "auth_token_prefs", // Имя файла для SharedPreferences
+        "auth_token_prefs",
         masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
