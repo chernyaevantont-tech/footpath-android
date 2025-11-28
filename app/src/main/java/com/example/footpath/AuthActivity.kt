@@ -1,5 +1,6 @@
 package com.example.footpath
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,15 +17,19 @@ import com.example.footpath.ui.navigation.Screen
 import com.example.footpath.ui.screens.LoginScreen
 import com.example.footpath.ui.screens.RegisterScreen
 import com.example.footpath.ui.theme.FootPathTheme
+import com.example.footpath.util.StoredAccount
 
 class AuthActivity : ComponentActivity() {
+
+    private var isAddNewAccountMode = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val isAddNewAccountMode = intent.getBooleanExtra("ADD_NEW_ACCOUNT_MODE", false)
+        isAddNewAccountMode = intent.getBooleanExtra("ADD_NEW_ACCOUNT_MODE", false)
 
         if (!isAddNewAccountMode && FootPathApp.accountManager.getActiveAccount() != null) {
-            navigateToMainApp()
+            navigateToMainApp(isSuccess = false) // Not a new login, just proceed
             return
         }
 
@@ -42,32 +47,32 @@ class AuthActivity : ComponentActivity() {
         NavHost(navController = navController, startDestination = Screen.Login.route) {
             composable(Screen.Login.route) {
                 LoginScreen(
-                    onLoginSuccess = { navigateToMainApp() },
-                    // Используем новый централизованный маршрут
+                    onLoginSuccess = { account -> navigateToMainApp(isSuccess = true) },
                     onNavigateToRegister = { navController.navigate(Screen.Register.route) }
                 )
             }
 
-            // Используем новый централизованный маршрут
             composable(Screen.Register.route) {
-                RegisterScreen (
-                    onRegistrationSuccess = { navigateToMainApp() },
+                RegisterScreen(
+                    onRegistrationSuccess = { account -> navigateToMainApp(isSuccess = true) },
                     onBackToLogin = { navController.popBackStack() }
                 )
             }
-
         }
     }
 
-
-
-    private fun navigateToMainApp() {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("LOGIN_SUCCESS", true)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    private fun navigateToMainApp(isSuccess: Boolean) {
+        if (isAddNewAccountMode) {
+            if (isSuccess) {
+                setResult(Activity.RESULT_OK)
+            }
+            finish() // Just finish and return to AccountActivity
+        } else {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+            finish()
         }
-        startActivity(intent)
-
-        finish()
     }
 }

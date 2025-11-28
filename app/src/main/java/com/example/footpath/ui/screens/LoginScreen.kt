@@ -25,32 +25,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.footpath.auth.LoginViewModel
-import com.example.footpath.ui.theme.FootPathTheme
+import com.example.footpath.util.StoredAccount
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (StoredAccount) -> Unit,
     onNavigateToRegister: () -> Unit,
     loginViewModel: LoginViewModel = viewModel()
 ) {
     val uiState by loginViewModel.uiState.collectAsState()
 
-    LaunchedEffect(key1 = uiState.loginSuccess) {
-        if (uiState.loginSuccess) {
-            onLoginSuccess()
+    LaunchedEffect(key1 = uiState.loggedInAccount) {
+        uiState.loggedInAccount?.let {
+            onLoginSuccess(it)
         }
     }
 
@@ -128,4 +124,3 @@ fun LoginScreen(
         }
     }
 }
-

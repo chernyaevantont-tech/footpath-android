@@ -46,7 +46,7 @@ class AccountManager(context: Context) {
         accounts.removeAll { it.userId.startsWith("temp_") }
 
         val existingAccountIndex = accounts.indexOfFirst {
-            it.userId == account.userId || it.email == account.email
+            it.email == account.email
         }
 
         if (existingAccountIndex != -1) {
@@ -68,6 +68,23 @@ class AccountManager(context: Context) {
 
     fun getActiveToken(): String? {
         return getActiveAccount()?.token
+    }
+
+    fun logout(userId: String) {
+        val accounts = getAccounts().toMutableList()
+        val activeAccount = getActiveAccount()
+
+        accounts.removeAll { it.userId == userId }
+
+        if (activeAccount?.userId == userId) {
+            if (accounts.isNotEmpty()) {
+                setActiveAccount(accounts.first().userId)
+            } else {
+                sharedPreferences.edit().remove(ACTIVE_ACCOUNT_ID_KEY).commit()
+            }
+        }
+
+        saveAccountsList(accounts)
     }
 
     fun logoutAll() {

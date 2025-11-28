@@ -2,7 +2,9 @@ package com.example.footpath.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.footpath.FootPathApp
 import com.example.footpath.data.repository.AuthRepository
+import com.example.footpath.util.StoredAccount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -13,12 +15,14 @@ data class RegisterUiState(
     val password: String = "",
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
-    val registrationSuccess: Boolean = false,
+    val registeredAccount: StoredAccount? = null,
     val errorMessage: String? = null
 )
 
 class RegisterViewModel : ViewModel() {
     private val authRepository = AuthRepository()
+    private val accountManager = FootPathApp.accountManager
+
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -39,7 +43,9 @@ class RegisterViewModel : ViewModel() {
                 password = _uiState.value.password
             )
             if (newAccount != null) {
-                _uiState.update { it.copy(isLoading = false, registrationSuccess = true) }
+                accountManager.addOrUpdateAccount(newAccount)
+                accountManager.setActiveAccount(newAccount.userId)
+                _uiState.update { it.copy(isLoading = false, registeredAccount = newAccount) }
             } else {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "Ошибка регистрации. Возможно, email уже занят.") }
             }

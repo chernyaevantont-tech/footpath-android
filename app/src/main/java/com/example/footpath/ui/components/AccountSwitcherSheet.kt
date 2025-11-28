@@ -1,25 +1,65 @@
 package com.example.footpath.ui.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.footpath.util.StoredAccount
-import androidx.compose.material3.ListItem
+
+sealed class AccountAction {
+    data class Select(val account: StoredAccount) : AccountAction()
+    data class Logout(val account: StoredAccount) : AccountAction()
+}
 
 @Composable
 fun AccountSwitcherSheet(
     accounts: List<StoredAccount>,
     activeAccount: StoredAccount?,
-    onAccountSelected: (StoredAccount) -> Unit,
-    onAddAccountClicked: () -> Unit,
-    onLoginAsExistingClicked: (StoredAccount) -> Unit
+    onAccountAction: (AccountAction) -> Unit,
+    onAddAccountClicked: () -> Unit
 ) {
+
+    val showDialog = remember { mutableStateOf<StoredAccount?>(null) }
+
+    if (showDialog.value != null) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = null },
+            title = { Text("Выход из аккаунта") },
+            text = { Text("Вы уверены, что хотите выйти из этого аккаунта? (${showDialog.value?.email})") },
+            confirmButton = {
+                Button (
+                    onClick = {
+                        showDialog.value?.let { onAccountAction(AccountAction.Logout(it)) }
+                        showDialog.value = null
+                    }
+                ) {
+                    Text("Выйти")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog.value = null }) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = "Выберите аккаунт",
@@ -31,7 +71,7 @@ fun AccountSwitcherSheet(
             ListItem(
                 modifier = Modifier.clickable {
                     if (account.userId != activeAccount?.userId) {
-                        onAccountSelected(account)
+                        onAccountAction(AccountAction.Select(account))
                     }
                 },
                 headlineContent = { Text(account.email) },
@@ -42,6 +82,13 @@ fun AccountSwitcherSheet(
                             contentDescription = "Активный аккаунт",
                             tint = MaterialTheme.colorScheme.primary
                         )
+                    } else {
+                        IconButton(onClick = { showDialog.value = account }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Выйти из аккаунта"
+                            )
+                        }
                     }
                 }
             )

@@ -62,4 +62,9 @@ class ProfileViewModel : ViewModel() {
         accountManager.setActiveAccount(account.userId)
         loadAccountData()
     }
+
+    fun logout(account: StoredAccount) {
+        accountManager.logout(account.userId)
+        loadAccountData()
+    }
 }

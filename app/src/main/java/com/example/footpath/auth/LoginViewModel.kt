@@ -3,6 +3,7 @@ package com.example.footpath.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.footpath.data.repository.AuthRepository
+import com.example.footpath.util.StoredAccount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -13,7 +14,7 @@ data class LoginUiState(
     val password: String = "",
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
-    val loginSuccess: Boolean = false,
+    val loggedInAccount: StoredAccount? = null,
     val errorMessage: String? = null
 )
 
@@ -43,7 +44,6 @@ class LoginViewModel : ViewModel() {
     }
 
     fun onLoginClicked() {
-
         if (_uiState.value.isLoading) return
 
         val email = _uiState.value.email
@@ -56,15 +56,13 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val loggedInAccount = authRepository.login(email, password)
+            val finalAccount = authRepository.loginAndGetAccount(email, password)
 
-            if (loggedInAccount != null) {
-
+            if (finalAccount != null) {
                 _uiState.update {
-                    it.copy(isLoading = false, loginSuccess = true)
+                    it.copy(isLoading = false, loggedInAccount = finalAccount)
                 }
             } else {
-
                 _uiState.update {
                     it.copy(
                         isLoading = false,
