@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.footpath.mobile"
+    namespace = "com.example.footpath"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.footpath.mobile"
+        applicationId = "com.example.footpath"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

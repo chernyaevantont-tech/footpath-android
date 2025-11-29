@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">FootPath</string>
+
+    <!-- LoginScreen -->
+    <string name="email">Электронная почта</string>
+    <string name="password">Пароль</string>
+    <string name="login">Войти</string>
+    <string name="no_account_register">Нет аккаунта? Зарегистрируйтесь</string>
+    <string name="hide_password">Скрыть пароль</string>
+    <string name="show_password">Показать пароль</string>
+    <string name="invalid_email_or_password">Неверный адрес электронной почты или пароль.</string>
+
+    <!-- RegisterScreen -->
+    <string name="registration">Регистрация</string>
+    <string name="confirm_password">Подтвердите пароль</string>
+    <string name="register">Зарегистрироваться</string>
+    <string name="already_have_account">Уже есть аккаунт? Войти</string>
+    <string name="passwords_do_not_match">Пароли не совпадают.</string>
+    <string name="registration_error">Ошибка регистрации. Возможно, электронная почта уже занята.</string>
+
+    <!-- AccountSwitcherSheet -->
+    <string name="select_account">Выберите аккаунт</string>
+    <string name="active_account">Активный аккаунт</string>
+    <string name="add_account">Добавить аккаунт</string>
+    <string name="logout_from_account">Выйти из аккаунта</string>
+    <string name="logout_confirmation">Вы уверены, что хотите выйти из этого аккаунта? (%s)</string>
+    <string name="logout">Выйти</string>
+    <string name="cancel">Отмена</string>
+
+    <!-- ProfileScreen -->
+    <string name="account_data_load_error">Ошибка: не удалось загрузить данные аккаунта.</string>
+    <string name="admin_panel">Админ-панель</string>
+    <string name="manage_accounts">Управление аккаунтами</string>
+
+    <!-- AdminActivity -->
+    <string name="register_moderator">Зарегистрировать модератора</string>
+
+</resources>

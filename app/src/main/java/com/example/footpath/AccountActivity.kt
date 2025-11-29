@@ -1,5 +1,4 @@
-// file: app/src/main/java/com/footpath/mobile/AccountActivity.kt
-package com.footpath.mobile
+package com.example.footpath
 
 import android.app.Activity
 import android.content.Intent
@@ -18,7 +17,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.footpath.AuthActivity
 import com.example.footpath.profile.ProfileViewModel
 import com.example.footpath.ui.components.AccountAction
 import com.example.footpath.ui.components.AccountSwitcherSheet

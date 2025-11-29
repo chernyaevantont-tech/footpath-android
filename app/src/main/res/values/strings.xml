@@ -1,3 +1,38 @@
 <resources>
     <string name="app_name">FootPath</string>
+
+    <!-- LoginScreen -->
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="no_account_register">No account? Register</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show password</string>
+    <string name="invalid_email_or_password">Invalid email or password.</string>
+
+    <!-- RegisterScreen -->
+    <string name="registration">Registration</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="register">Register</string>
+    <string name="already_have_account">Already have an account? Login</string>
+    <string name="passwords_do_not_match">Passwords do not match.</string>
+    <string name="registration_error">Registration error. Email may already be taken.</string>
+
+    <!-- AccountSwitcherSheet -->
+    <string name="select_account">Select account</string>
+    <string name="active_account">Active account</string>
+    <string name="add_account">Add account</string>
+    <string name="logout_from_account">Logout from account</string>
+    <string name="logout_confirmation">Are you sure you want to log out of this account? (%s)</string>
+    <string name="logout">Logout</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- ProfileScreen -->
+    <string name="account_data_load_error">Error: failed to load account data.</string>
+    <string name="admin_panel">Admin panel</string>
+    <string name="manage_accounts">Manage accounts</string>
+
+    <!-- AdminActivity -->
+    <string name="register_moderator">Register moderator</string>
+
 </resources>

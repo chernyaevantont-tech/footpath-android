@@ -19,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.footpath.R
 import com.example.footpath.util.StoredAccount
 
 sealed class AccountAction {
@@ -40,21 +42,21 @@ fun AccountSwitcherSheet(
     if (showDialog.value != null) {
         AlertDialog(
             onDismissRequest = { showDialog.value = null },
-            title = { Text("Выход из аккаунта") },
-            text = { Text("Вы уверены, что хотите выйти из этого аккаунта? (${showDialog.value?.email})") },
+            title = { Text(stringResource(id = R.string.logout_from_account)) },
+            text = { Text(stringResource(id = R.string.logout_confirmation, showDialog.value?.email ?: "")) },
             confirmButton = {
-                Button (
+                Button(
                     onClick = {
                         showDialog.value?.let { onAccountAction(AccountAction.Logout(it)) }
                         showDialog.value = null
                     }
                 ) {
-                    Text("Выйти")
+                    Text(stringResource(id = R.string.logout))
                 }
             },
             dismissButton = {
                 Button(onClick = { showDialog.value = null }) {
-                    Text("Отмена")
+                    Text(stringResource(id = R.string.cancel))
                 }
             }
         )
@@ -62,7 +64,7 @@ fun AccountSwitcherSheet(
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = "Выберите аккаунт",
+            text = stringResource(id = R.string.select_account),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -79,14 +81,14 @@ fun AccountSwitcherSheet(
                     if (account.userId == activeAccount?.userId) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Активный аккаунт",
+                            contentDescription = stringResource(id = R.string.active_account),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     } else {
                         IconButton(onClick = { showDialog.value = account }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Выйти из аккаунта"
+                                contentDescription = stringResource(id = R.string.logout_from_account)
                             )
                         }
                     }
@@ -98,11 +100,11 @@ fun AccountSwitcherSheet(
 
         ListItem(
             modifier = Modifier.clickable { onAddAccountClicked() },
-            headlineContent = { Text("Добавить аккаунт") },
+            headlineContent = { Text(stringResource(id = R.string.add_account)) },
             leadingContent = {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Добавить аккаунт"
+                    contentDescription = stringResource(id = R.string.add_account)
                 )
             }
         )

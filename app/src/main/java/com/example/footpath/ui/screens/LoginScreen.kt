@@ -27,11 +27,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.footpath.R
 import com.example.footpath.auth.LoginViewModel
 import com.example.footpath.util.StoredAccount
 
@@ -62,7 +64,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "FootPath",
+                text = stringResource(id = R.string.app_name),
                 style = MaterialTheme.typography.headlineMedium
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -71,7 +73,7 @@ fun LoginScreen(
                 value = uiState.email,
                 onValueChange = { loginViewModel.onEmailChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Email") },
+                label = { Text(stringResource(id = R.string.email)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
                 enabled = !uiState.isLoading
@@ -82,13 +84,13 @@ fun LoginScreen(
                 value = uiState.password,
                 onValueChange = { loginViewModel.onPasswordChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Password") },
+                label = { Text(stringResource(id = R.string.password)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val image = if (uiState.isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    val description = if (uiState.isPasswordVisible) "Hide password" else "Show password"
+                    val description = if (uiState.isPasswordVisible) stringResource(id = R.string.hide_password) else stringResource(id = R.string.show_password)
                     IconButton(onClick = { loginViewModel.onTogglePasswordVisibility() }) {
                         Icon(imageVector = image, contentDescription = description)
                     }
@@ -110,12 +112,12 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isLoading && uiState.email.isNotBlank() && uiState.password.isNotBlank()
             ) {
-                Text("Login")
+                Text(stringResource(id = R.string.login))
             }
             Spacer(modifier = Modifier.height(24.dp))
 
             TextButton(onClick = onNavigateToRegister , enabled = !uiState.isLoading) {
-                Text("Нет аккаунта? Зарегистрируйтесь")
+                Text(stringResource(id = R.string.no_account_register))
             }
         }
 
