@@ -5,5 +5,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun PathsScreen() {
-    Text(text = "Paths Screen")
+    Text("Paths Screen")
 }

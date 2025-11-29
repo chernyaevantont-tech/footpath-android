@@ -3,8 +3,8 @@ package com.example.footpath.map
 import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.footpath.data.api.dto.Coordinates
 import com.example.footpath.data.api.dto.PlaceDto
 import com.example.footpath.data.repository.PlacesRepository
 import com.google.android.gms.location.LocationServices
@@ -16,25 +16,45 @@ import org.osmdroid.util.GeoPoint
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+import java.util.UUID
+
+enum class Role {
+    USER, MODERATOR, ADMIN
+}
+
+data class User(val id: String, val role: Role)
 
 data class MapUiState(
-    val places: List<PlaceDto> = emptyList(),
+    val allPlaces: List<PlaceDto> = emptyList(),
+    val places: List<PlaceDto> = emptyList(), // Filtered places
     val isLoading: Boolean = true,
     val userLocation: GeoPoint? = null,
     val selectedPlace: PlaceDto? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val currentUser: User? = null,
+    val showPendingAndRejected: Boolean = true
 )
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val placesRepository = PlacesRepository()
-    // 2. Создаем клиент для получения геолокации
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(application)
 
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val isoFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+
     init {
+        // Mock current user. In a real app, this would come from an auth repository.
+        val currentUser = User(id = "user-123", role = Role.USER)
+        _uiState.update { it.copy(currentUser = currentUser) }
         fetchPlaces()
     }
 
@@ -42,15 +62,18 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val placesList = placesRepository.getApprovedPlaces()
+            // In a real app, you would fetch all places and filter them here.
+            // For now, we continue to use the existing repository method and add some mock data.
+            val approvedPlaces = placesRepository.getApprovedPlaces()
+            val mockPlaces = generateMockPlaces()
+            val allPlaces = approvedPlaces + mockPlaces
 
-            if (placesList.isNotEmpty()) {
+            if (allPlaces.isNotEmpty()) {
                 _uiState.update {
-                    it.copy(isLoading = false, places = placesList)
+                    it.copy(isLoading = false, allPlaces = allPlaces)
                 }
+                filterPlaces()
             } else {
-                // Можно обработать и случай, когда список просто пуст,
-                // но для простоты будем считать это ошибкой, если бэкенд не вернул ничего.
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = "Could not load places.")
                 }
@@ -58,15 +81,35 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun filterPlaces() {
+        _uiState.update { state ->
+            val currentUser = state.currentUser ?: return@update state
+
+            val filtered = state.allPlaces.filter { place ->
+                when (place.status) {
+                    "approved" -> true
+                    "pending", "rejected" -> {
+                        if (!state.showPendingAndRejected) return@filter false
+                        when (currentUser.role) {
+                            Role.ADMIN, Role.MODERATOR -> true
+                            Role.USER -> place.creatorId == currentUser.id
+                        }
+                    }
+                    else -> false
+                }
+            }
+            state.copy(places = filtered)
+        }
+    }
+
     @SuppressLint("MissingPermission")
     fun centerOnUserLocation() {
         viewModelScope.launch {
             try {
-                // Запрашиваем ОДНОКРАТНОЕ получение точной геолокации
                 val location = fusedLocationClient.getCurrentLocation(
                     Priority.PRIORITY_HIGH_ACCURACY,
                     CancellationTokenSource().token
-                ).await() // .await() позволяет использовать корутины
+                ).await()
 
                 location?.let {
                     val userGeoPoint = GeoPoint(it.latitude, it.longitude)
@@ -76,9 +119,36 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Можно обновить UI с ошибкой
             }
         }
+    }
+
+    fun addPlace(point: GeoPoint) {
+        val currentUser = _uiState.value.currentUser ?: return
+        val now = isoFormatter.format(Date())
+
+        val newPlace = PlaceDto(
+            placeId = UUID.randomUUID().toString(),
+            name = "New Place",
+            description = "A new place to be reviewed.",
+            coordinates = Coordinates("Point", listOf(point.longitude, point.latitude)),
+            tagIds = emptyList(),
+            status = "pending",
+            creatorId = currentUser.id,
+            createdAt = now,
+            updatedAt = now
+        )
+
+        _uiState.update { state ->
+            val updatedPlaces = state.allPlaces + newPlace
+            state.copy(allPlaces = updatedPlaces)
+        }
+        filterPlaces()
+    }
+
+    fun toggleShowPendingAndRejected() {
+        _uiState.update { it.copy(showPendingAndRejected = !it.showPendingAndRejected) }
+        filterPlaces()
     }
 
     fun onMarkerClick(place: PlaceDto) {
@@ -87,5 +157,46 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onBottomSheetDismiss() {
         _uiState.update { it.copy(selectedPlace = null) }
+    }
+
+    private fun generateMockPlaces(): List<PlaceDto> {
+        val currentUser = _uiState.value.currentUser!!
+        val now = Date().time
+
+        return listOf(
+            PlaceDto(
+                placeId = "mock-1",
+                name = "Pending Place by Me",
+                description = "This is a place I suggested.",
+                coordinates = Coordinates("Point", listOf(37.6273, 55.7658)),
+                tagIds = emptyList(),
+                status = "pending",
+                creatorId = currentUser.id,
+                createdAt = isoFormatter.format(Date(now - 3600 * 1000)), // 1 hour ago
+                updatedAt = isoFormatter.format(Date(now - 3600 * 1000))
+            ),
+            PlaceDto(
+                placeId = "mock-2",
+                name = "Rejected Place by Me",
+                description = "This place was rejected.",
+                coordinates = Coordinates("Point", listOf(37.6373, 55.7758)),
+                tagIds = emptyList(),
+                status = "rejected",
+                creatorId = currentUser.id,
+                createdAt = isoFormatter.format(Date(now - 24 * 3600 * 1000)), // 1 day ago
+                updatedAt = isoFormatter.format(Date(now - 24 * 3600 * 1000))
+            ),
+            PlaceDto(
+                placeId = "mock-3",
+                name = "Pending by Other",
+                description = "Someone else suggested this.",
+                coordinates = Coordinates("Point", listOf(37.6473, 55.7858)),
+                tagIds = emptyList(),
+                status = "pending",
+                creatorId = "another-user",
+                createdAt = isoFormatter.format(Date(now - 5 * 3600 * 1000)), // 5 hours ago
+                updatedAt = isoFormatter.format(Date(now - 5 * 3600 * 1000))
+            )
+        )
     }
 }

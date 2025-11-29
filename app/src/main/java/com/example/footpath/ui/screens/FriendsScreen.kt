@@ -5,5 +5,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun FriendsScreen() {
-    Text(text = "Friends Screen")
+    Text("Friends Screen")
 }
