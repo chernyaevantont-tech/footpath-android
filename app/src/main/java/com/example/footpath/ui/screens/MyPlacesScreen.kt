@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.footpath.data.api.dto.PlaceDto
+import com.example.footpath.data.api.dto.PlaceResponseDto
 import com.example.footpath.ui.viewmodels.MyPlacesViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -53,7 +53,7 @@ fun MyPlacesScreen(myPlacesViewModel: MyPlacesViewModel = viewModel()) {
 }
 
 @Composable
-fun MyPlaceCard(place: PlaceDto) {
+fun MyPlaceCard(place: PlaceResponseDto) {
     val isoFormatter = remember {
         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")

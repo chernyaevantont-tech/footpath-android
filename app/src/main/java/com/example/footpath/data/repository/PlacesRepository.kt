@@ -1,15 +1,15 @@
 package com.example.footpath.data.repository
 
 import com.example.footpath.data.api.RetrofitInstance
-import com.example.footpath.data.api.dto.PlaceDto
+import com.example.footpath.data.api.dto.PlaceResponseDto
 
 class PlacesRepository {
 
     private val placesApiService = RetrofitInstance.placesApi
 
-    suspend fun getApprovedPlaces(): List<PlaceDto> {
+    suspend fun findPlaces(status: String? = null): List<PlaceResponseDto> {
         return try {
-            placesApiService.getApprovedPlaces()
+            placesApiService.findPlaces(status = status).data
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()

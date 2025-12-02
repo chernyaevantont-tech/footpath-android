@@ -2,7 +2,7 @@ package com.example.footpath.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.footpath.data.api.dto.RegisterModeratorRequest
+import com.example.footpath.data.api.dto.RegisterModeratorDto
 import com.example.footpath.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +30,7 @@ class AdminViewModel : ViewModel() {
     fun registerModerator() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, successMessage = null, errorMessage = null) }
-            val request = RegisterModeratorRequest(
+            val request = RegisterModeratorDto(
                 email = _uiState.value.email,
                 password = _uiState.value.password,
                 role = _uiState.value.role

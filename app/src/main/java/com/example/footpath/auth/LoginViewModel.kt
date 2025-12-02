@@ -66,7 +66,7 @@ class LoginViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Invalid email or password."
+                        errorMessage = "Неверный адрес электронной почты или пароль."
                     )
                 }
             }

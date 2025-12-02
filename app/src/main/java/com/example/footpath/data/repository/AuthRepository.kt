@@ -3,8 +3,9 @@ package com.example.footpath.data.repository
 import android.util.Log
 import com.example.footpath.FootPathApp
 import com.example.footpath.data.api.RetrofitInstance
-import com.example.footpath.data.api.dto.LoginRequest
-import com.example.footpath.data.api.dto.RegisterModeratorRequest
+import com.example.footpath.data.api.dto.LoginDto
+import com.example.footpath.data.api.dto.RegisterDto
+import com.example.footpath.data.api.dto.RegisterModeratorDto
 import com.example.footpath.util.StoredAccount
 import java.lang.Exception
 
@@ -14,7 +15,7 @@ class AuthRepository {
 
     suspend fun loginAndGetAccount(email: String, password: String): StoredAccount? {
         return try {
-            val loginRequest = LoginRequest(email = email, password = password)
+            val loginRequest = LoginDto(email = email, password = password)
             val loginResponse = authApiService.login(loginRequest)
             val token = loginResponse.token
 
@@ -65,7 +66,7 @@ class AuthRepository {
 
     suspend fun register(email: String, password: String): StoredAccount? {
         return try {
-            val registerRequest = LoginRequest(email = email, password = password)
+            val registerRequest = RegisterDto(email = email, password = password)
             val loginResponse = authApiService.register(registerRequest)
             val token = loginResponse.token
 
@@ -104,7 +105,7 @@ class AuthRepository {
         }
     }
 
-    suspend fun registerModerator(request: RegisterModeratorRequest): Boolean {
+    suspend fun registerModerator(request: RegisterModeratorDto): Boolean {
         return try {
             val response = authApiService.registerModerator(request)
             response.user.id.isNotBlank()

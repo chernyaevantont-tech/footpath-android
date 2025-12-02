@@ -10,10 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.footpath.data.api.dto.PlaceDto
+import com.example.footpath.data.api.dto.PlaceResponseDto
 
 @Composable
-fun PlaceDetailsBottomSheet(place: PlaceDto) {
+fun PlaceDetailsBottomSheet(place: PlaceResponseDto) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -24,9 +24,11 @@ fun PlaceDetailsBottomSheet(place: PlaceDto) {
             style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = place.description,
-            style = MaterialTheme.typography.bodyLarge
-        )
+        place.description?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
     }
 }

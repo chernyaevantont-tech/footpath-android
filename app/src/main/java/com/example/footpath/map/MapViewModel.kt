@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.footpath.data.api.dto.Coordinates
-import com.example.footpath.data.api.dto.PlaceDto
+import com.example.footpath.data.api.dto.CoordinatesDto
+import com.example.footpath.data.api.dto.PlaceResponseDto
 import com.example.footpath.data.repository.PlacesRepository
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,11 +29,11 @@ enum class Role {
 data class User(val id: String, val role: Role)
 
 data class MapUiState(
-    val allPlaces: List<PlaceDto> = emptyList(),
-    val places: List<PlaceDto> = emptyList(), // Filtered places
+    val allPlaces: List<PlaceResponseDto> = emptyList(),
+    val places: List<PlaceResponseDto> = emptyList(), // Filtered places
     val isLoading: Boolean = true,
     val userLocation: GeoPoint? = null,
-    val selectedPlace: PlaceDto? = null,
+    val selectedPlace: PlaceResponseDto? = null,
     val errorMessage: String? = null,
     val currentUser: User? = null,
     val showPendingAndRejected: Boolean = true
@@ -64,7 +64,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
             // In a real app, you would fetch all places and filter them here.
             // For now, we continue to use the existing repository method and add some mock data.
-            val approvedPlaces = placesRepository.getApprovedPlaces()
+            val approvedPlaces = placesRepository.findPlaces(status = "approved")
             val mockPlaces = generateMockPlaces()
             val allPlaces = approvedPlaces + mockPlaces
 
@@ -127,14 +127,15 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         val currentUser = _uiState.value.currentUser ?: return
         val now = isoFormatter.format(Date())
 
-        val newPlace = PlaceDto(
-            placeId = UUID.randomUUID().toString(),
+        val newPlace = PlaceResponseDto(
+            id = UUID.randomUUID().toString(),
             name = "New Place",
             description = "A new place to be reviewed.",
-            coordinates = Coordinates("Point", listOf(point.longitude, point.latitude)),
-            tagIds = emptyList(),
+            coordinates = "POINT (${point.longitude} ${point.latitude})",
+            tags = emptyList(),
             status = "pending",
             creatorId = currentUser.id,
+            moderatorId = null,
             createdAt = now,
             updatedAt = now
         )
@@ -151,7 +152,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         filterPlaces()
     }
 
-    fun onMarkerClick(place: PlaceDto) {
+    fun onMarkerClick(place: PlaceResponseDto) {
         _uiState.update { it.copy(selectedPlace = place) }
     }
 
@@ -159,41 +160,44 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(selectedPlace = null) }
     }
 
-    private fun generateMockPlaces(): List<PlaceDto> {
+    private fun generateMockPlaces(): List<PlaceResponseDto> {
         val currentUser = _uiState.value.currentUser!!
         val now = Date().time
 
         return listOf(
-            PlaceDto(
-                placeId = "mock-1",
+            PlaceResponseDto(
+                id = "mock-1",
                 name = "Pending Place by Me",
                 description = "This is a place I suggested.",
-                coordinates = Coordinates("Point", listOf(37.6273, 55.7658)),
-                tagIds = emptyList(),
+                coordinates = "POINT (37.6273 55.7658)",
+                tags = emptyList(),
                 status = "pending",
                 creatorId = currentUser.id,
+                moderatorId = null,
                 createdAt = isoFormatter.format(Date(now - 3600 * 1000)), // 1 hour ago
                 updatedAt = isoFormatter.format(Date(now - 3600 * 1000))
             ),
-            PlaceDto(
-                placeId = "mock-2",
+            PlaceResponseDto(
+                id = "mock-2",
                 name = "Rejected Place by Me",
                 description = "This place was rejected.",
-                coordinates = Coordinates("Point", listOf(37.6373, 55.7758)),
-                tagIds = emptyList(),
+                coordinates = "POINT (37.6373 55.7758)",
+                tags = emptyList(),
                 status = "rejected",
                 creatorId = currentUser.id,
+                moderatorId = null,
                 createdAt = isoFormatter.format(Date(now - 24 * 3600 * 1000)), // 1 day ago
                 updatedAt = isoFormatter.format(Date(now - 24 * 3600 * 1000))
             ),
-            PlaceDto(
-                placeId = "mock-3",
+            PlaceResponseDto(
+                id = "mock-3",
                 name = "Pending by Other",
                 description = "Someone else suggested this.",
-                coordinates = Coordinates("Point", listOf(37.6473, 55.7858)),
-                tagIds = emptyList(),
+                coordinates = "POINT (37.6473 55.7858)",
+                tags = emptyList(),
                 status = "pending",
                 creatorId = "another-user",
+                moderatorId = null,
                 createdAt = isoFormatter.format(Date(now - 5 * 3600 * 1000)), // 5 hours ago
                 updatedAt = isoFormatter.format(Date(now - 5 * 3600 * 1000))
             )

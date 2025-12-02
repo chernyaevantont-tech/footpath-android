@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -26,7 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.footpath.data.api.dto.PlaceDto
+import com.example.footpath.data.api.dto.PlaceResponseDto
 import com.example.footpath.ui.viewmodels.ModerationViewModel
 
 @Composable
@@ -52,7 +51,6 @@ fun ModerationScreen(moderationViewModel: ModerationViewModel = viewModel()) {
                         place = it, 
                         onApprove = moderationViewModel::approvePlace,
                         onReject = moderationViewModel::rejectPlace,
-                        onDelete = moderationViewModel::deletePlace
                     )
                 }
             }
@@ -62,10 +60,9 @@ fun ModerationScreen(moderationViewModel: ModerationViewModel = viewModel()) {
 
 @Composable
 fun PlaceModerationCard(
-    place: PlaceDto,
+    place: PlaceResponseDto,
     onApprove: (String) -> Unit,
-    onReject: (String) -> Unit,
-    onDelete: (String) -> Unit
+    onReject: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -74,21 +71,18 @@ fun PlaceModerationCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = place.name, style = MaterialTheme.typography.titleLarge)
-            Text(text = place.description)
+            place.description?.let { Text(text = it) }
             Text(text = "Status: ${place.status}")
-            Text(text = "Suggested by: ${place.creatorId}")
+            place.creatorId?.let { Text(text = "Suggested by: $it") }
 
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 if (place.status == "pending") {
-                    IconButton(onClick = { onApprove(place.placeId) }) {
+                    IconButton(onClick = { onApprove(place.id) }) {
                         Icon(Icons.Default.Check, contentDescription = "Approve")
                     }
-                    IconButton(onClick = { onReject(place.placeId) }) {
+                    IconButton(onClick = { onReject(place.id) }) {
                         Icon(Icons.Default.Close, contentDescription = "Reject")
                     }
-                }
-                IconButton(onClick = { onDelete(place.placeId) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete")
                 }
             }
         }

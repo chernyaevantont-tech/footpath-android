@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.footpath.data.api.dto.PlaceDto
+import com.example.footpath.data.api.dto.PlaceResponseDto
 import com.example.footpath.map.MapViewModel
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -40,6 +40,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.util.regex.Pattern
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -122,7 +123,7 @@ fun MapScreen(
 
                     uiState.places.forEach { place ->
                         val marker = Marker(mapView).apply {
-                            position = GeoPoint(place.latitude, place.longitude)
+                            position = parseCoordinates(place.coordinates)
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                             title = place.name
 
@@ -168,9 +169,21 @@ fun MapScreen(
 }
 
 @Composable
-fun PlaceDetailsBottomSheet(place: PlaceDto, onDismiss: () -> Unit) {
+fun PlaceDetailsBottomSheet(place: PlaceResponseDto, onDismiss: () -> Unit) {
     // Dummy implementation
     Box(modifier = Modifier.padding(16.dp)) {
         Text(text = "Selected place: ${place.name}")
+    }
+}
+
+private fun parseCoordinates(wkt: String): GeoPoint? {
+    val pattern = Pattern.compile("POINT \\(([-\\d.]+) ([-\\d.]+)\\)")
+    val matcher = pattern.matcher(wkt)
+    return if (matcher.find()) {
+        val lon = matcher.group(1).toDouble()
+        val lat = matcher.group(2).toDouble()
+        GeoPoint(lat, lon)
+    } else {
+        null
     }
 }
